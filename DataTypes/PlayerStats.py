@@ -3,13 +3,9 @@ from decimal import Decimal
 class PlayerStats:
     def __init__(self, values):
         playerLine = values[1].strip().split(' ')
-        self.wannabeOwner = 'none'
-        self.wannabeDraftPick = -1
-        self.wannabePrice = -1
         self.NFLTeam = playerLine[len(playerLine)-1]
         self.position = playerLine[len(playerLine)-3]
         self.playerName = values[1][:values[1].find(self.position)].strip()
-        self.avail = values[0]
         self.opponent = values[2]
         self.ovp = values[3]
         self.byeWeek = int(values[4])
@@ -33,9 +29,6 @@ class PlayerStats:
 
     def createJson(self):
         Item={
-            'wannabeOwner': self.wannabeOwner,
-            'wannabeDraftPick': self.wannabeDraftPick,
-            'wannabePrice': self.wannabePrice,
             'playerName': self.playerName,
             'NFLTeam': self.NFLTeam,
             'position': self.position,
@@ -54,7 +47,7 @@ class PlayerStats:
             'rushingAttempts': Decimal(str(self.rushingAttempts)),
             'rushingYards': Decimal(str(self.rushingYards)),
             'rushingTDs': Decimal(str(self.rushingTDs)),
-            'self': Decimal(str(self.receivingTargets)),
+            'receivingTargets': Decimal(str(self.receivingTargets)),
             'receivingReceptions': Decimal(str(self.receivingReceptions)),
             'receivingYards': Decimal(str(self.receivingYards)),
             'receivingTDs': Decimal(str(self.receivingTDs)),

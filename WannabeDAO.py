@@ -3,6 +3,7 @@ import boto3
 import decimal
 from boto3.dynamodb.conditions import Key, Attr
 from DataTypes.DraftRecord import DraftRecord
+from DataTypes.DraftedPlayer import DraftedPlayer
 
 # import requests
 
@@ -11,38 +12,58 @@ def decimal_default(obj):
         return float(obj)
     raise TypeError
 
-
-def getCurrentDraftPosition():
-    draftIndex=[]
-
-    for item in queryPlayers('all','drafted'):
-        draftIndex.append(item['wannabeDraftPick'])
-
-    maxPick = max(draftIndex)
-    return maxPick
+#################################################
+# DraftPlayers Table Methods
+#################################################
 
 def saveDraftPick(event, context):
     dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
-    table = dynamodb.Table('players')
+    table = dynamodb.Table('DraftedPlayers')
+
     body = event['body']
-    position = body['position']
-    name = body['playerName']
-    owner = body['owner']
-    price = body['price']
-    record = table.get_item(
-        Key = {
-            'position': position,
-            'playerName': name
-        }
-    )['Item']
+    record = DraftedPlayer(body)
+    records = table.scan()
+    record.draftOrder = len(records['Items']) + 1
 
-    record['wannabeOwner'] = owner
-    record['wannabeDraftPick'] = getCurrentDraftPosition() + 1
-    record['wannabePrice'] = price
+    table.put_item(Item=record.__dict__)
+    return {
+        "statusCode": 200,
+        "headers": { "Access-Control-Allow-Origin": "*" },
+    }
 
-    table.put_item(Item = record, ConditionExpression = Attr('wannabePrice').eq(-1))
-    # table.put_item(Item=record)
+def undoLastPick(event, context):
+    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
+    table = dynamodb.Table('DraftedPlayers')
 
+    draftedPlayers = table.scan()['Items']
+    for player in draftedPlayers:
+        if len(draftedPlayers) == player['draftOrder']:
+            lastPlayerPicked = player
+
+    table.delete_item(Key = {
+            'draftOrder': int(lastPlayerPicked['draftOrder']),
+            'playerName': lastPlayerPicked['playerName']
+        })
+    return {
+        "statusCode": 200,
+        "headers": { "Access-Control-Allow-Origin": "*" },
+    }
+
+def getDraftedPlayers(event, context):
+    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
+    table = dynamodb.Table('DraftedPlayers')
+
+    results = table.scan();
+    jsonData = json.dumps(results, default=decimal_default)
+    return {
+        "statusCode": 200,
+        "headers": { "Access-Control-Allow-Origin": "*" },
+        "body": jsonData
+    }
+
+#################################################
+# DraftStatus Table Methods
+#################################################
 def saveDraftInfo(event, context):
     dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
     table = dynamodb.Table('DraftStatus')
@@ -94,69 +115,26 @@ def getDraftInfo(event, context):
         "body": jsonData
     }
 
-# Get Players. Gets a set of players
-#
-# Body Parameters:
-#   - position (all, QB, RB, TE, WR, DST, K)
-#   - playerList (all, drafted, available)
+#################################################
+# DraftStatus Table Methods
+#################################################
 def getPlayers(event, context):
-    position = event['queryStringParameters']['position']
-    playerList = event['queryStringParameters']['playerList']
-    print('request = ', position, playerList)
+    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
+    table = dynamodb.Table('PlayerStats')
 
-    # players = queryPlayers(position, playerList)
-    players = sorted(queryPlayers(position, playerList), key=lambda x: x['fantasyPoints'], reverse=True)
-    jsonData = json.dumps(players, default=decimal_default)
+    records = table.scan(AttributesToGet=['playerName', 'NFLTeam', 'byeWeek', 'fantasyPoints',
+                                           'position', 'percentOwn', 'percentStart'])['Items']
+    jsonData = json.dumps(records, default=decimal_default)
     return {
         "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*"
-        },
+        "headers": { "Access-Control-Allow-Origin": "*" },
         "body": jsonData
     }
 
-def queryPlayers(position, playerList):
-    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
-    table = dynamodb.Table('players')
-
-    if position == 'all':
-        positionAttribute = Attr('position').between('AAA','ZZZ)')
-    else:
-        positionAttribute = Attr('position').eq(position)
-
-    if playerList == 'drafted':
-        filterAttribute = Attr('wannabeDraftPick').gt(0)
-    if playerList == 'available':
-        filterAttribute = Attr('wannabeDraftPick').eq(-1)
-    if playerList == 'all':
-        filterAttribute = Attr('wannabeDraftPick').gt(-2)
-
-    pointsAttribute = Attr('fantasyPoints').gt(0)
-
-    response = table.scan(
-        IndexName='position-fantasyPoints-index',
-        FilterExpression=filterAttribute & positionAttribute & pointsAttribute,
-    )
-    players = response['Items']
-    return players
-
-def undoLastPick(event, context):
-    highestPick = getCurrentDraftPosition()
-
-    draftedPlayers = queryPlayers('all', 'drafted')
-    for player in draftedPlayers:
-        if highestPick == player['wannabeDraftPick']:
-            lastPlayerPicked = player
-
-    lastPlayerPicked['wannabeOwner'] = 'none'
-    lastPlayerPicked['wannabeDraftPick'] = -1
-    lastPlayerPicked['wannabePrice'] = -0
 
 
-    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
-    table = dynamodb.Table('players')
-    table.put_item(Item=lastPlayerPicked)
-
+draftedPlayerEvent = json.loads('{ \"body\": { \"position\": \"QB\", \"playerName\": \"Aaron Rodgers\",\"NFLTeam\": \"Packers\",\"byeWeek\": 10,\"fantasyPoints\": 123.3,\"ownerName\": \"Gunslingers\",\"price\":24}}')
+draftedPlayerEvent2 = json.loads('{ \"body\": { \"position\": \"RB\", \"playerName\": \"Barry Sanders\",\"NFLTeam\": \"Packers\",\"byeWeek\": 10,\"fantasyPoints\": 123.3,\"ownerName\": \"Gunslingers\",\"price\":93}}')
 testEvent = json.loads('{ \"queryStringParameters\": { \"position\": \"RB\", \"playerList\": \"available\" }}')
 testDraftEvent = json.loads('{ \"body\": { \"position\": \"QB\", \"playerName\": \"Aaron Rodgers\",\"owner\": \"Gunslingers\",\"price\":24  }}')
 testDraftSetupEvent = json.loads("{ \"body\": {\"draftName\":\"2019 Draft\",\"budget\":200,\"leagueSize\":12,\"teams\":[" \
@@ -173,13 +151,17 @@ testDraftSetupEvent = json.loads("{ \"body\": {\"draftName\":\"2019 Draft\",\"bu
            "{\"ownerName\":\"Scott Mayer\",\"teamName\":\"Bud Heavy\",\"remainingBudget\":200,\"draftOrder\":11,\"isAdmin\":false}," \
            "{\"ownerName\":\"Lee Bryan\",\"teamName\":\"Big Daddy\",\"remainingBudget\":200,\"draftOrder\":12,\"isAdmin\":false}]}}");
 
-# data = getPlayers(testEvent, "null")
-# y = json.loads(data['body'])
-# print(y)
+data = getPlayers(testEvent, "null")
+y = json.loads(data['body'])
+print(y)
 
 # highestPick = getCurrentDraftPosition()
 # print('Highest Pick = ' + str(highestPick))
-# saveDraftPick(testDraftEvent,"null")
+# saveDraftPick(draftedPlayerEvent,"null")
+# saveDraftPick(draftedPlayerEvent2,"null")
+# print(getDraftedPlayers("dummy","dummy"))
+# undoLastPick("dummy","dummy")
+# print(getDraftedPlayers("dummy","dummy"))
 # undoLastPick("null", "null")
 
 # highestPick = getCurrentDraftPosition()
