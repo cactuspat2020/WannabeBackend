@@ -1,10 +1,10 @@
 
 class DraftRecord:
-    def __init__(self, draftName, values):
+    def __init__(self, draftName, budget, values):
         self.draftName = draftName
         self.ownerName = values['ownerName']
         self.teamName = values['teamName']
-        self.budget = int(values['budget'])
+        self.budget = budget;
         self.draftOrder = int(values['draftOrder'])
         self.isAdmin = bool(values['isAdmin'])
 
