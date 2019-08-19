@@ -160,7 +160,7 @@ def getDraftInfo(event, context):
     }
 
 #################################################
-# DraftStatus Table Methods
+# PlayerList Methods
 #################################################
 def getPlayers(event, context):
     dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
@@ -174,6 +174,55 @@ def getPlayers(event, context):
         "headers": { "Access-Control-Allow-Origin": "*" },
         "body": jsonData
     }
+
+def saveWatchlistPlayer(event, context):
+    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
+    table = dynamodb.Table('WatchLists')
+
+    body = event['body']
+    record = DraftedPlayer(json.loads(body));
+    print('Storing player to watchlist: ' + str(body));
+
+    table.put_item(Item=record.__dict__)
+
+    print('Done with save. Returning 200')
+    return {
+        "statusCode": 200,
+        "headers": { "Access-Control-Allow-Origin": "*" },
+    }
+
+def deleteWatchlistPlayer(event, context):
+    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
+    table = dynamodb.Table('WatchLists')
+    print('Event = ' + str(event))
+
+    body = event['body']
+    print('Body = ' + str(body))
+    record = DraftedPlayer(json.loads(body))
+
+    table.delete_item (
+        Key={ 'ownerName': record.ownerName,
+            'playerName': record.playerName
+        }
+    )
+    return {
+        "statusCode": 200,
+        "headers": { "Access-Control-Allow-Origin": "*" },
+    }
+
+def getWatchlists(event, context):
+    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
+    table = dynamodb.Table('WatchLists')
+
+    records = table.scan()['Items']
+    jsonData = json.dumps(records, default=decimal_default)
+    return {
+        "statusCode": 200,
+        "headers": { "Access-Control-Allow-Origin": "*" },
+        "body": jsonData
+    }
+
+
 
 
 
