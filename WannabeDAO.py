@@ -222,6 +222,19 @@ def getWatchlists(event, context):
         "body": jsonData
     }
 
+def getAveragePlayerCost(event, context):
+    dynamodb = boto3.resource(service_name='dynamodb', region_name='us-west-2')
+    table = dynamodb.Table('averagePlayerCost')
+
+    records = table.scan()['Items']
+    jsonData = json.dumps(records, default=decimal_default)
+    return {
+        "statusCode": 200,
+        "headers": { "Access-Control-Allow-Origin": "*" },
+        "body": jsonData
+    }
+
+
 
 
 
