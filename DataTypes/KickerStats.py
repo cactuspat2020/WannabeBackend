@@ -8,7 +8,7 @@ class KickerStats:
         self.wannabePrice = -1
         self.NFLTeam = playerLine[len(playerLine)-1]
         self.position = playerLine[len(playerLine)-3]
-        self.playerName = values[1][:values[1].find(self.position+' ')].strip()
+        self.playerName = values[1][:values[1].find(self.position+' |')].strip()
         self.avail = values[0]
         self.opponent = values[2]
         self.ovp = values[3]
@@ -59,6 +59,33 @@ class KickerStats:
             'extraPointAttempts': self.extraPointAttempts
         }
         return Item;
+
+    def createDdbItem(self):
+        Item = {
+            "playerName": { "S": str(self.playerName) },
+            "percentStart": { "N": str(self.percentStart) },
+            "NFLTeam": { "S": str(self.NFLTeam) },
+            "fieldGoalsMade40": { "S": str(self.fieldGoalsMade40) },
+            "fieldGoalsMade30": { "S": str(self.fieldGoalsMade40) },
+            "fieldGoalsMade20": { "S": str(self.fieldGoalsMade20) },
+            "extraPointsMade": { "S": str(self.extraPointsMade) },
+            "ovp": { "S": str(self.ovp) },
+            "fieldGoalsMade50": { "S": str(self.fieldGoalsMade50) },
+            "fieldGoalAttempts40": { "S": str(self.fieldGoalAttempts40) },
+            "fieldGoalAttempts30": { "S": str(self.fieldGoalAttempts30) },
+            "fantasyPoints": { "S": str(self.fantasyPoints) },
+            "fieldGoalAttempts50": { "S": str(self.fieldGoalAttempts50) },
+            "percentOwn": { "S": str(self.percentOwn) },
+            "opponent": { "S": str(self.opponent) },
+            "fieldGoalAttempts20": { "S": str(self.fieldGoalAttempts20) },
+            "totalFieldGoalsAttempts": { "S": str(self.totalFieldGoalsAttempts) },
+            "totalFieldGoalsMade": { "S": str(self.totalFieldGoalsMade) },
+            "byeWeek": { "S": str(self.byeWeek) },
+            "extraPointAttempts": { "S": str(self.extraPointAttempts) },
+            "position": { "S": str(self.position) }
+        }
+        return Item
+
 
 # statString = 'W ,Stephen Gostkowski K | NE ,HOU,11,40.2,35.6,0,45.8,45.8,0,2,148.00'
 # stat = KickerStats(statString)

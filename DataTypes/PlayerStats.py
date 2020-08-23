@@ -55,6 +55,32 @@ class PlayerStats:
         }
         return Item;
 
+    def createDdbItem(self):
+        item = {
+            "completed": { "N": str(self.completed) },
+            "rushingTDs": { "N": str(self.rushingTDs) },
+            "passingTDs": { "N": str(self.passingTDs) },
+            "playerName": { "S": str(self.playerName) },
+            "percentStart": { "N": str(self.percentStart) },
+            "receivingTDs": { "N": str(self.receivingTDs) },
+            "NFLTeam": { "S": str(self.NFLTeam) },
+            "passingyards": { "N": str(self.passingyards) },
+            "ovp": { "S": str(self.ovp) },
+            "rushingAttempts": { "N": str(self.rushingAttempts) },
+            "passingAttempts": { "N": str(self.passingAttempts) },
+            "fantasyPoints": { "N": str(self.fantasyPoints) },
+            "percentOwn": { "N": str(self.percentOwn) },
+            "opponent": { "S": str(self.opponent) },
+            "fumblesLost": { "N": str(self.fumblesLost) },
+            "receivingYards": { "N": str(self.receivingYards) },
+            "byeWeek": { "N": str(self.byeWeek) },
+            "receivingReceptions": { "N": str(self.receivingReceptions) },
+            "passingINTs": { "N": str(self.passingINTs) },
+            "position": { "S": str(self.position) },
+            "rushingYards": { "N": str(self.rushingYards) }
+        }
+        return item
+
 # statString = 'W ,Russell Wilson QB | SEA,@DEN,7,553,339,3983,34,11,95,586,6.2,3,0,0,0,0.0,0,3,266.00'
 # stat = PlayerStats(statString)
 #

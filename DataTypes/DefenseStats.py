@@ -50,7 +50,28 @@ class DefenseStats:
         }
         return Item;
 
+    def createDdbItem(self):
+        item = {
+            "pointsAgainst": { "N": str(self.pointsAgainst) },
+            "playerName": { "S": str(self.playerName) },
+            "percentStart": { "N": str(self.percentStart) },
+            "NFLTeam": { "S": str(self.NFLTeam) },
+            "touchdowns": { "N": str(self.touchdowns) },
+            "fumbles": { "N": str(self.fumbles) },
+            "safeties": { "N": str(self.safeties) },
+            "ovp": { "N": str(self.ovp) },
+            "sacks": { "N": str(self.sacks) },
+            "interceptions": { "N": str(self.interceptions) },
+            "fantasyPoints": { "N": str(self.fantasyPoints) },
+            "percentOwn": { "N": str(self.percentOwn) },
+            "yardsAgainst": { "N": str(self.yardsAgainst) },
+            "opponent": { "S": str(self.opponent) },
+            "byeWeek": { "N": str(self.byeWeek) },
+            "position": { "S": str(self.position) }
+        }
+        return item
+
 # statString = 'W ,Jaguars DST | JAC ,@NYG,9,18,1,52,647,15,21,5,282,2896,1788,4684,2,117.00'
-# stat = DefenseStats(statString)
+# stat = DefenseStats(statString.split(','))
 #
 # stat.avail
