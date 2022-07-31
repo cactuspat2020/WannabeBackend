@@ -7,6 +7,7 @@ class DraftRecord:
         self.budget = budget;
         self.draftOrder = int(values['draftOrder'])
         self.isAdmin = bool(values['isAdmin'])
+        self.hasCarryOver = bool(values['hasCarryOver'])
 
     def createJson(self):
         Item={
@@ -15,5 +16,6 @@ class DraftRecord:
             'teamName' : self.teamName,
             'remainingBudget' : self.remainingBudget,
             'draftOrder' : self.draftOrder,
-            'isAdmin' : self.isAdmin
+            'isAdmin' : self.isAdmin,
+            'hasCarryOver' : self.hasCarryOver
         }
